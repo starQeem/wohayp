@@ -1,12 +1,14 @@
 package com.starQeem.wohayp.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.enums.DateTimePatternEnum;
 import com.starQeem.wohayp.entity.enums.FileStatusEnums;
 import com.starQeem.wohayp.entity.enums.FileTypeEnums;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.exception.BusinessException;
 import com.starQeem.wohayp.service.fileService;
 import com.starQeem.wohayp.util.ProcessUtils;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -49,9 +50,9 @@ public class FileTransferService {
         String targetFilePath = null;
         String cover = null;
         FileTypeEnums fileTypeEnum = null;
-        QueryWrapper<file> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("file_id",fileId).eq("user_id",Long.valueOf(userDto.getUserId()));
-        file file = fileService.getBaseMapper().selectOne(queryWrapper);
+        File file = fileService.getBaseMapper().selectOne(Wrappers.<File>lambdaQuery()
+                .eq(File::getFileId,fileId)
+                .eq(File::getUserId,Long.valueOf(userDto.getUserId())));
         try {
             if (file == null||!FileStatusEnums.TRANSFER.getStatus().equals(file.getStatus())){//判断是否为非转码中
                 //不是转码中
@@ -60,13 +61,13 @@ public class FileTransferService {
             //临时目录
             String tempFolderName = FILE + FILE_FOLDER_TEMP;
             String currentUserFolderName = userDto.getUserId() + fileId;
-            File fileFolder = new File(tempFolderName + currentUserFolderName);
+            java.io.File fileFolder = new java.io.File(tempFolderName + currentUserFolderName);
 
             String fileSuffix = StringTools.getFileSuffix(file.getFileName());
             String month = DateUtil.format(file.getCreateTime(), DateTimePatternEnum.YYYYMM.getPattern());
             //目标目录
             String targetFolderName = FILE + FILE_FOLDER_FILE;
-            File targetFolder = new File(targetFolderName + month);
+            java.io.File targetFolder = new java.io.File(targetFolderName + month);
             if (!targetFolder.exists()){
                 targetFolder.mkdirs();
             }
@@ -83,32 +84,30 @@ public class FileTransferService {
                 //视频生成缩略图
                 cover = month + "/" +currentUserFolderName + IMAGE_PNG_SUFFIX;
                 String coverPath = targetFolderName + "/" + cover;
-                ScaleFilter.createCover4Video(new File(targetFilePath),LENGTH_150,new File(coverPath));
+                ScaleFilter.createCover4Video(new java.io.File(targetFilePath),LENGTH_150,new java.io.File(coverPath));
             }else if (FileTypeEnums.IMAGE == fileTypeEnum){
                 //图片
                 //生成缩略图
                 cover = month + "/" + realFileName.replace(".","_.");//展示完整图片".",展示缩略图"_."
                 String coverPath = targetFolderName +"/" + cover;
                 boolean created = ScaleFilter
-                        .createThumbnailWidthFFmpeg(new File(targetFilePath),LENGTH_150,new File(coverPath),false);
+                        .createThumbnailWidthFFmpeg(new java.io.File(targetFilePath),LENGTH_150,new java.io.File(coverPath),false);
                 if (!created){
-                    FileUtils.copyFile(new File(targetFilePath),new File(coverPath)); //如果图太小了,生成的缩略图直接用原图
+                    FileUtils.copyFile(new java.io.File(targetFilePath),new java.io.File(coverPath)); //如果图太小了,生成的缩略图直接用原图
                 }
             }
         }catch (Exception e){
             logger.error("文件转码失败,文件id:{},userId:{}",fileId,userDto.getUserId(),e);
             transferSuccess = false;
         }finally {
-            file updateInfo = new file();
-            updateInfo.setFileSize(new File(targetFilePath).length());
+            File updateInfo = new File();
+            updateInfo.setFileSize(new java.io.File(targetFilePath).length());
             updateInfo.setFileCover(cover);
             updateInfo.setStatus(transferSuccess?FileStatusEnums.USING.getStatus() : FileStatusEnums.TRANSFER_FAIL.getStatus());
-            QueryWrapper<file> updateInfoQueryWrapper = new QueryWrapper<>();
-            updateInfoQueryWrapper
-                    .eq("file_id",fileId)
-                    .eq("user_id",Long.valueOf(userDto.getUserId()))
-                    .eq("status",FileStatusEnums.TRANSFER.getStatus());
-            fileService.getBaseMapper().update(updateInfo,updateInfoQueryWrapper);
+            fileService.getBaseMapper().update(updateInfo,Wrappers.<File>lambdaUpdate()
+                    .eq(File::getFileId,fileId)
+                    .eq(File::getUserId,Long.valueOf(userDto.getUserId()))
+                    .eq(File::getStatus,FileStatusEnums.TRANSFER.getStatus()));
         }
     }
 
@@ -121,19 +120,19 @@ public class FileTransferService {
      * @param delSource  德尔源
      */
     public void union(String dirPath,String toFilePath,String fileName,boolean delSource){
-        File dir = new File(dirPath);
+        java.io.File dir = new java.io.File(dirPath);
         if (!dir.exists()){
             throw new BusinessException("目录不存在!");
         }
-        File[] fileList = dir.listFiles();
-        File targetFile = new File(toFilePath);
+        java.io.File[] fileList = dir.listFiles();
+        java.io.File targetFile = new java.io.File(toFilePath);
         RandomAccessFile writeFile = null;
         try {
             writeFile = new RandomAccessFile(targetFile,"rw");
             byte[] b = new byte[1024*10];
             for (int i = 0; i < fileList.length; i++) {
                 int len = -1;
-                File chunkFile = new File(dirPath + File.separator + i);
+                java.io.File chunkFile = new java.io.File(dirPath + java.io.File.separator + i);
                 RandomAccessFile readFile = null;
                 try {
                     readFile = new RandomAccessFile(chunkFile,"r");
@@ -176,7 +175,7 @@ public class FileTransferService {
      */
     private void cutFileVideo(Long fileId,String videoFilePath){
         //创建同名切片目录
-        File tsFolder = new File(videoFilePath.substring(0,videoFilePath.lastIndexOf(".")));
+        java.io.File tsFolder = new java.io.File(videoFilePath.substring(0,videoFilePath.lastIndexOf(".")));
         if (!tsFolder.exists()){
             tsFolder.mkdirs();
         }
@@ -190,6 +189,6 @@ public class FileTransferService {
         cmd = String.format(CMD_CUT_TS,tsPath,tsFolder.getPath() + "/" + M3U8_NAME,tsFolder.getPath(),fileId);
         ProcessUtils.executeCommand(cmd,false);
         //删除index.ts文件
-        new File(tsPath).delete();
+        new java.io.File(tsPath).delete();
     }
 }

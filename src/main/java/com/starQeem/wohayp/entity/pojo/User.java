@@ -1,6 +1,5 @@
 package com.starQeem.wohayp.entity.pojo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
@@ -13,7 +12,7 @@ import java.util.Date;
  * @date 2023/05/27
  */
 @Data
-public class user {
+public class User {
     @TableId
     private Long userId;  //用户id
     private String nickName;  //用户昵称

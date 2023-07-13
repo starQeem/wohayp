@@ -2,23 +2,23 @@ package com.starQeem.wohayp.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.starQeem.wohayp.entity.dto.SessionShareDto;
-import com.starQeem.wohayp.entity.pojo.share;
+import com.starQeem.wohayp.entity.pojo.Share;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 
 /**
  * @Date: 2023/6/4 10:09
  * @author: Qeem
  */
-public interface shareService extends IService<share> {
+public interface shareService extends IService<Share> {
     /**
      * 获取分享文件列表
      *
      * @param userId   用户id
      * @param pageNo   当前页码
      * @param pageSize 一页的数据条数
-     * @return {@link PaginationResultVO}<{@link share}>
+     * @return {@link PaginationResultVO}<{@link Share}>
      */
-    PaginationResultVO<share> pageFileList(Long userId, Integer pageNo, Integer pageSize);
+    PaginationResultVO<Share> pageFileList(Long userId, Integer pageNo, Integer pageSize);
 
 
     /**
@@ -26,7 +26,7 @@ public interface shareService extends IService<share> {
      *
      * @param share 分享
      */
-    void saveShare(share share);
+    void saveShare(Share share);
 
     /**
      * 删除文件共享

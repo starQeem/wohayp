@@ -1,7 +1,7 @@
 package com.starQeem.wohayp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.starQeem.wohayp.entity.pojo.share;
+import com.starQeem.wohayp.entity.pojo.Share;
 import org.apache.ibatis.annotations.Mapper;
 
 
@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @author: Qeem
  */
 @Mapper
-public interface shareMapper extends BaseMapper<share> {
+public interface shareMapper extends BaseMapper<Share> {
 }

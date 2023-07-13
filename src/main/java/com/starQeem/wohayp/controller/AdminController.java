@@ -2,8 +2,8 @@ package com.starQeem.wohayp.controller;
 
 import com.starQeem.wohayp.annotation.GlobalInterceptor;
 import com.starQeem.wohayp.annotation.VerifyParam;
-import com.starQeem.wohayp.entity.pojo.file;
-import com.starQeem.wohayp.entity.pojo.user;
+import com.starQeem.wohayp.entity.pojo.File;
+import com.starQeem.wohayp.entity.pojo.User;
 import com.starQeem.wohayp.entity.query.FileInfoQuery;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import com.starQeem.wohayp.entity.vo.ResponseVO;
@@ -43,7 +43,7 @@ public class AdminController extends CommonFileController{
     @RequestMapping("/loadUserList")
     @GlobalInterceptor(checkParams = true,checkAdmin = true)
     public ResponseVO loadUserList(String nickNameFuzzy,String status,Integer pageNo,Integer pageSize){
-        PaginationResultVO<user> resultVO = userService.getUserList(nickNameFuzzy,status,pageNo,pageSize);
+        PaginationResultVO<User> resultVO = userService.getUserList(nickNameFuzzy,status,pageNo,pageSize);
         return getSuccessResponseVO(convert2PaginationVO(resultVO, UserInfoVO.class));
     }
 
@@ -85,7 +85,7 @@ public class AdminController extends CommonFileController{
     @RequestMapping("/loadFileList")
     @GlobalInterceptor(checkParams = true,checkAdmin = true)
     public ResponseVO loadFileList(FileInfoQuery query){
-        PaginationResultVO<file> result = fileService.pageFileList(null,query,false,true);
+        PaginationResultVO<File> result = fileService.pageFileList(null,query,false,true);
         return getSuccessResponseVO(result);
     }
 

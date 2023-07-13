@@ -6,7 +6,7 @@ import com.starQeem.wohayp.entity.dto.UploadResultDto;
 import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.enums.FileCategoryEnums;
 import com.starQeem.wohayp.entity.enums.FileDelFlagEnums;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.entity.query.FileInfoQuery;
 import com.starQeem.wohayp.entity.vo.FileInfoVO;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
@@ -51,7 +51,7 @@ public class FileController extends CommonFileController{
         }
         query.setFileType(FileDelFlagEnums.USING.getFlag());
         UserDto user = (UserDto) session.getAttribute("user");
-        PaginationResultVO<file> result = fileService.pageFileList(Long.valueOf(user.getUserId()),query,false,false);
+        PaginationResultVO<File> result = fileService.pageFileList(Long.valueOf(user.getUserId()),query,false,false);
         return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
     /**
@@ -130,7 +130,7 @@ public class FileController extends CommonFileController{
                                 @VerifyParam(required = true)String filePid,
                                 @VerifyParam(required = true)String fileName){
         UserDto userDto = (UserDto) session.getAttribute("user");
-        file file = fileService.newFolder(filePid, userDto.getUserId(), fileName);
+        File file = fileService.newFolder(filePid, userDto.getUserId(), fileName);
         return getSuccessResponseVO(CopyTools.copy(file, FileInfoVO.class));
     }
     /**
@@ -159,7 +159,7 @@ public class FileController extends CommonFileController{
                              @VerifyParam(required = true)String fileId,
                              @VerifyParam(required = true)String fileName){
         UserDto userDto = (UserDto) session.getAttribute("user");
-        file file = fileService.rename(fileId,userDto.getUserId(),fileName);
+        File file = fileService.rename(fileId,userDto.getUserId(),fileName);
         return getSuccessResponseVO(CopyTools.copy(file, FileInfoVO.class));
     }
 
@@ -175,7 +175,7 @@ public class FileController extends CommonFileController{
     @GlobalInterceptor(checkParams = true)
     public ResponseVO loadAllFolder(HttpSession session,String currentFileIds, @VerifyParam(required = true)String filePid){
         UserDto userDto = (UserDto) session.getAttribute("user");
-        List<file> fileList = fileService.loadAllFolder(userDto.getUserId(),filePid,currentFileIds);
+        List<File> fileList = fileService.loadAllFolder(userDto.getUserId(),filePid,currentFileIds);
         return getSuccessResponseVO(CopyTools.copyList(fileList, FileInfoVO.class));
     }
 

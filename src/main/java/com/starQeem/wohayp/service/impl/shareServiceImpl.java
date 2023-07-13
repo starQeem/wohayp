@@ -2,13 +2,14 @@ package com.starQeem.wohayp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.starQeem.wohayp.entity.dto.SessionShareDto;
 import com.starQeem.wohayp.entity.enums.ShareValidTypeEnums;
-import com.starQeem.wohayp.entity.pojo.file;
-import com.starQeem.wohayp.entity.pojo.share;
+import com.starQeem.wohayp.entity.pojo.File;
+import com.starQeem.wohayp.entity.pojo.Share;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import com.starQeem.wohayp.exception.BusinessException;
 import com.starQeem.wohayp.exception.ResponseCodeEnum;
@@ -32,7 +33,7 @@ import static com.starQeem.wohayp.util.Constants.*;
  * @author: Qeem
  */
 @Service
-public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements shareService{
+public class shareServiceImpl extends ServiceImpl<shareMapper, Share> implements shareService{
     @Resource
     private shareService shareService;
     @Resource
@@ -43,10 +44,10 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
      * @param userId   用户id
      * @param pageNo   当前页码
      * @param pageSize 一页的数据条数
-     * @return {@link PaginationResultVO}<{@link share}>
+     * @return {@link PaginationResultVO}<{@link Share}>
      */
     @Override
-    public PaginationResultVO<share> pageFileList(Long userId, Integer pageNo, Integer pageSize) {
+    public PaginationResultVO<Share> pageFileList(Long userId, Integer pageNo, Integer pageSize) {
         if (pageNo == null){
             pageNo = ONE;
         }
@@ -56,16 +57,9 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
         PageHelper.startPage(pageNo,pageSize);
         PageHelper.orderBy("share_time desc");
         //查询分享表
-        QueryWrapper<share> shareQueryWrapper = new QueryWrapper<>();
-        shareQueryWrapper
-                .select("share_id","file_id","user_id","valid_type","expire_time","share_time","code","view")
-                .eq("user_id",userId);
-        List<share> shareList = shareService.getBaseMapper().selectList(shareQueryWrapper);
+        List<Share> shareList = shareService.getBaseMapper().selectList(Wrappers.<Share>lambdaQuery().eq(Share::getUserId,userId));
         //查询文件表
-        QueryWrapper<file> fileQueryWrapper = new QueryWrapper<>();
-        fileQueryWrapper.select("file_id","file_name","folder_type","file_type","file_cover")
-                .eq("user_id",userId);
-        List<file> fileList = fileService.getBaseMapper().selectList(fileQueryWrapper);
+        List<File> fileList = fileService.getBaseMapper().selectList(Wrappers.<File>lambdaQuery().eq(File::getUserId,userId));
         //如果将文件表中的file_id与分享表的file_id相同,则将文件表的文件名和文件类型赋值给shareList
         fileList.forEach(file -> {
             shareList.stream()
@@ -77,7 +71,7 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
                         share.setFileCover(file.getFileCover());
                     });
         });
-        PageInfo<share> pageInfo = new PageInfo<>(shareList);
+        PageInfo<Share> pageInfo = new PageInfo<>(shareList);
         return new PaginationResultVO<>(Math.toIntExact(pageInfo.getTotal()), pageInfo.getPageSize(), pageInfo.getPageNum(), pageInfo.getPages(), shareList);
     }
 
@@ -87,7 +81,7 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
      * @param share 分享
      */
     @Override
-    public void saveShare(share share) {
+    public void saveShare(Share share) {
         ShareValidTypeEnums typeEnums = ShareValidTypeEnums.getByType(share.getValidType());
         if (typeEnums == null){
             throw new BusinessException(ResponseCodeEnum.CODE_600);
@@ -115,9 +109,9 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteFileShareBath(String shareIds, Long userId) {
-        QueryWrapper<share> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id",userId).last("and share_id in(" + shareIds + ")");
-        int count = shareService.getBaseMapper().delete(queryWrapper);
+        int count = shareService.getBaseMapper().delete(Wrappers.<Share>lambdaQuery()
+                .eq(Share::getUserId,userId)
+                .last("and share_id in(" + shareIds + ")"));
         String[] strings = shareIds.split(",");
         if (count != strings.length){
             throw new BusinessException(ResponseCodeEnum.CODE_600);
@@ -133,9 +127,7 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
      */
     @Override
     public SessionShareDto checkShareCode(String shareId, String code) {
-        QueryWrapper<share> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("share_id",Long.valueOf(shareId));
-        share share = shareService.getBaseMapper().selectOne(queryWrapper);
+        Share share = shareService.getBaseMapper().selectOne(Wrappers.<Share>lambdaQuery().eq(Share::getShareId,Long.valueOf(shareId)));
         if (share == null || share.getExpireTime() != null && new Date().after(share.getExpireTime())){ //判断分享链接是否存在,是否失效
             throw new BusinessException(ResponseCodeEnum.CODE_902.getMsg()); //分享链接不存在或者已经失效
         }
@@ -143,9 +135,7 @@ public class shareServiceImpl extends ServiceImpl<shareMapper, share> implements
             throw new BusinessException("提取码错误!");
         }
         //更新浏览次数
-        UpdateWrapper<share> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.setSql("view = view + 1").eq("share_id", shareId);
-        shareService.update(updateWrapper);
+        shareService.update(Wrappers.<Share>lambdaUpdate().eq(Share::getShareId,shareId).setSql("view = view + 1"));
         SessionShareDto shareSessionDto = new SessionShareDto();
         shareSessionDto.setShareUserId(Long.valueOf(shareId));
         shareSessionDto.setShareUserId(share.getUserId());

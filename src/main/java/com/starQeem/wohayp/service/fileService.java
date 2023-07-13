@@ -3,7 +3,7 @@ package com.starQeem.wohayp.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.starQeem.wohayp.entity.dto.UploadResultDto;
 import com.starQeem.wohayp.entity.dto.UserDto;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.entity.query.FileInfoQuery;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,13 +14,13 @@ import java.util.List;
  * @Date: 2023/5/29 19:58
  * @author: Qeem
  */
-public interface fileService extends IService<file> {
+public interface fileService extends IService<File> {
     /**
      * 文件分页列表
      *
      * @return {@link PaginationResultVO}<{@link FileInfo}>
      */
-    PaginationResultVO<file> pageFileList(Long userId,FileInfoQuery query,boolean isRecycle,boolean isAdmin);
+    PaginationResultVO<File> pageFileList(Long userId, FileInfoQuery query, boolean isRecycle, boolean isAdmin);
 
     /**
      * 上传文件
@@ -44,9 +44,9 @@ public interface fileService extends IService<file> {
      *
      * @param filePid  父级id
      * @param fileName 文件名称
-     * @return {@link file}
+     * @return {@link File}
      */
-    file newFolder(String filePid, String userId,String fileName);
+    File newFolder(String filePid, String userId, String fileName);
 
     /**
      * 重命名
@@ -54,9 +54,9 @@ public interface fileService extends IService<file> {
      * @param fileId   文件标识
      * @param userId   用户id
      * @param fileName 文件名称
-     * @return {@link file}
+     * @return {@link File}
      */
-    file rename(String fileId, String userId, String fileName);
+    File rename(String fileId, String userId, String fileName);
 
     /**
      * 获取所有目录
@@ -64,9 +64,9 @@ public interface fileService extends IService<file> {
      * @param userId         用户id
      * @param filePid        文件pid
      * @param currentFileIds 当前文件id
-     * @return {@link List}<{@link file}>
+     * @return {@link List}<{@link File}>
      */
-    List<file> loadAllFolder(String userId, String filePid, String currentFileIds);
+    List<File> loadAllFolder(String userId, String filePid, String currentFileIds);
 
     /**
      * 移动文件

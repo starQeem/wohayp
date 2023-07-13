@@ -2,10 +2,11 @@ package com.starQeem.wohayp.controller;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starQeem.wohayp.entity.dto.DownloadFileDto;
 import com.starQeem.wohayp.entity.enums.FileCategoryEnums;
 import com.starQeem.wohayp.entity.enums.FileFolderTypeEnums;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.entity.vo.ResponseVO;
 import com.starQeem.wohayp.exception.BusinessException;
 import com.starQeem.wohayp.exception.ResponseCodeEnum;
@@ -18,7 +19,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.File;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -62,9 +62,9 @@ public class CommonFileController extends ABaseController {
         if (fileId.endsWith(".ts")){
             String[] isArray = fileId.split("_"); //以"_"为中心将fileId分割成两部分"3589909651"和"0001.ts"这样的
             String realFileId = isArray[0];//拿前面的"3589909651"
-            QueryWrapper<file> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("file_id",realFileId).eq("user_id",Long.valueOf(userId));
-            file fileInfo = fileService.getBaseMapper().selectOne(queryWrapper);
+            File fileInfo = fileService.getBaseMapper().selectOne(Wrappers.<File>lambdaQuery()
+                    .eq(File::getFileId,realFileId)
+                    .eq(File::getUserId,Long.valueOf(userId)));
             if (fileInfo == null){
                 return;
             }
@@ -73,9 +73,9 @@ public class CommonFileController extends ABaseController {
             fileName = StringTools.getFileNameNoSuffix(nameWithoutExtension + "/" + fileId);
             filePath = FILE + FILE_FOLDER_FILE + fileName +".ts";
         }else {
-            QueryWrapper<file> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("file_id",Long.valueOf(fileId)).eq("user_id",Long.valueOf(userId));
-            file fileInfo = fileService.getBaseMapper().selectOne(queryWrapper);
+            File fileInfo = fileService.getBaseMapper().selectOne(Wrappers.<File>lambdaQuery()
+                    .eq(File::getFileId,Long.valueOf(fileId))
+                    .eq(File::getUserId,Long.valueOf(userId)));
             if (fileInfo == null){//判断文件是否存在
                 return;
             }
@@ -85,7 +85,7 @@ public class CommonFileController extends ABaseController {
             }else {
                 filePath = FILE + FILE_FOLDER_FILE + fileInfo.getFilePath();
             }
-            File file = new File(filePath);
+            java.io.File file = new java.io.File(filePath);
             if (!file.exists()){
                 return;
             }
@@ -104,14 +104,14 @@ public class CommonFileController extends ABaseController {
         String[] pathArray = path.split("/"); //分割路径
         String result = StringTools.Array2String(pathArray);
         //查询当前目录
-        QueryWrapper<file> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<File> queryWrapper = new QueryWrapper<>();
         if (userId != null){
             queryWrapper.eq("user_id",Long.valueOf(userId));
         }
         queryWrapper
                 .eq("folder_type",FileFolderTypeEnums.FOLDER.getType())
                 .last("and file_id in("+ result+ ")order by FIELD(file_id," + result + ")");
-        List<file> fileList = fileService.getBaseMapper().selectList(queryWrapper);
+        List<File> fileList = fileService.getBaseMapper().selectList(queryWrapper);
         return getSuccessResponseVO(fileList);
     }
 
@@ -123,9 +123,9 @@ public class CommonFileController extends ABaseController {
      * @return {@link ResponseVO}
      */
     protected ResponseVO createDownLoadUrl(String fileId,String userId){
-        QueryWrapper<file> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("file_id",fileId).eq("user_id",userId);
-        file fileInfo = fileService.getBaseMapper().selectOne(queryWrapper);
+        File fileInfo = fileService.getBaseMapper().selectOne(Wrappers.<File>lambdaQuery()
+                .eq(File::getFileId,fileId)
+                .eq(File::getUserId,userId));
         if (fileInfo == null){
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }

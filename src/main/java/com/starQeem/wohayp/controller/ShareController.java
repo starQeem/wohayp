@@ -3,7 +3,7 @@ package com.starQeem.wohayp.controller;
 import com.starQeem.wohayp.annotation.GlobalInterceptor;
 import com.starQeem.wohayp.annotation.VerifyParam;
 import com.starQeem.wohayp.entity.dto.UserDto;
-import com.starQeem.wohayp.entity.pojo.share;
+import com.starQeem.wohayp.entity.pojo.Share;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import com.starQeem.wohayp.entity.vo.ResponseVO;
 import com.starQeem.wohayp.service.shareService;
@@ -38,7 +38,7 @@ public class ShareController extends ABaseController{
     @GlobalInterceptor
     public ResponseVO loadShareList(HttpSession session,Integer pageNo,Integer pageSize){
         UserDto user = (UserDto) session.getAttribute("user");
-        PaginationResultVO<share> result = shareService.pageFileList(Long.valueOf(user.getUserId()),pageNo,pageSize);
+        PaginationResultVO<Share> result = shareService.pageFileList(Long.valueOf(user.getUserId()),pageNo,pageSize);
         return getSuccessResponseVO(result);
     }
 
@@ -57,7 +57,7 @@ public class ShareController extends ABaseController{
                                 @VerifyParam(required = true)String fileId,
                                 @VerifyParam(required = true)Integer validType){
         UserDto userDto = (UserDto) session.getAttribute("user");
-        share share = new share();
+        Share share = new Share();
         share.setUserId(Long.valueOf(userDto.getUserId()));
         share.setCode(code);
         share.setFileId(Long.valueOf(fileId));

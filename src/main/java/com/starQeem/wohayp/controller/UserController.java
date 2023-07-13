@@ -9,7 +9,7 @@ import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.vo.ResponseVO;
 import com.starQeem.wohayp.enums.VerifyRegexEnum;
 import com.starQeem.wohayp.exception.BusinessException;
-import com.starQeem.wohayp.entity.pojo.user;
+import com.starQeem.wohayp.entity.pojo.User;
 import com.starQeem.wohayp.service.userService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +104,7 @@ public class UserController extends ABaseController {
      */
     @RequestMapping("/register")
     @GlobalInterceptor(checkParams = true,checkLogin = false)
-    public ResponseVO register(HttpSession session, user user,
+    public ResponseVO register(HttpSession session, User user,
                                @VerifyParam(required = true) String checkCode,
                                @VerifyParam(required = true) String emailCode)
             throws BusinessException {

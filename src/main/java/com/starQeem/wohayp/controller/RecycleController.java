@@ -4,7 +4,7 @@ import com.starQeem.wohayp.annotation.GlobalInterceptor;
 import com.starQeem.wohayp.annotation.VerifyParam;
 import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.enums.FileDelFlagEnums;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.entity.query.FileInfoQuery;
 import com.starQeem.wohayp.entity.vo.FileInfoVO;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
@@ -43,7 +43,7 @@ public class RecycleController extends ABaseController{
         query.setFileType(FileDelFlagEnums.RECYCLE.getFlag());
         query.setPageNo(pageNo);
         query.setPageSize(pageSize);
-        PaginationResultVO<file> result = fileService.pageFileList(Long.valueOf(user.getUserId()),query,true,false);
+        PaginationResultVO<File> result = fileService.pageFileList(Long.valueOf(user.getUserId()),query,true,false);
         return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 

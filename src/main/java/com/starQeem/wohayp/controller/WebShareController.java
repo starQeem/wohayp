@@ -1,14 +1,14 @@
 package com.starQeem.wohayp.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starQeem.wohayp.annotation.GlobalInterceptor;
 import com.starQeem.wohayp.annotation.VerifyParam;
 import com.starQeem.wohayp.entity.dto.SessionShareDto;
 import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.enums.FileDelFlagEnums;
-import com.starQeem.wohayp.entity.pojo.file;
-import com.starQeem.wohayp.entity.pojo.share;
-import com.starQeem.wohayp.entity.pojo.user;
+import com.starQeem.wohayp.entity.pojo.File;
+import com.starQeem.wohayp.entity.pojo.Share;
+import com.starQeem.wohayp.entity.pojo.User;
 import com.starQeem.wohayp.entity.query.FileInfoQuery;
 import com.starQeem.wohayp.entity.vo.FileInfoVO;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
@@ -88,25 +88,23 @@ public class WebShareController extends CommonFileController {
     }
 
     private ShareInfoVO getShareInfoCommon(String shareId) {
-        QueryWrapper<share> shareQueryWrapper = new QueryWrapper<>();
-        shareQueryWrapper.eq("share_id", shareId);
-        share share = shareService.getBaseMapper().selectOne(shareQueryWrapper);
+        Share share = shareService.getBaseMapper().selectOne(Wrappers.<Share>lambdaQuery()
+                .eq(Share::getShareId,shareId));
         if (share == null || share.getExpireTime() != null && new Date().after(share.getExpireTime())) { //判断分享链接是否存在,是否失效
             throw new BusinessException(ResponseCodeEnum.CODE_902.getMsg()); //分享链接不存在或者已经失效
         }
         ShareInfoVO shareInfoVO = CopyTools.copy(share, ShareInfoVO.class);
         //根据文件id和发布文件的用户名查询文件
-        QueryWrapper<file> fileQueryWrapper = new QueryWrapper<>();
-        fileQueryWrapper.eq("file_id", share.getFileId()).eq("user_id", share.getUserId());
-        file file = fileService.getBaseMapper().selectOne(fileQueryWrapper);
+        File file = fileService.getBaseMapper().selectOne(Wrappers.<File>lambdaQuery()
+                .eq(File::getFileId,share.getFileId())
+                .eq(File::getUserId,share.getUserId()));
         //判断查询出的文件是否存在,是否未被删除
         if (file == null || FileDelFlagEnums.RECYCLE.getFlag().equals(file.getDelFlag())) {
             throw new BusinessException(ResponseCodeEnum.CODE_902);
         }
         //查询用户
-        QueryWrapper<user> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.eq("user_id", share.getUserId());
-        user user = userService.getBaseMapper().selectOne(userQueryWrapper);
+        User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery()
+                .eq(User::getUserId,share.getUserId()));
         shareInfoVO.setFileName(file.getFileName());
         shareInfoVO.setNickName(user.getNickName());
         shareInfoVO.setAvatar(user.getAvatar());
@@ -153,7 +151,7 @@ public class WebShareController extends CommonFileController {
             query.setFileId(sessionShareDto.getFileId().toString());
         }
         query.setFileType(FileDelFlagEnums.USING.getFlag());
-        PaginationResultVO<file> result = fileService.pageFileList(sessionShareDto.getShareUserId(), query, false, false);
+        PaginationResultVO<File> result = fileService.pageFileList(sessionShareDto.getShareUserId(), query, false, false);
         return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 

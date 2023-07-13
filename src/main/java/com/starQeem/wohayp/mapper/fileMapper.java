@@ -1,7 +1,7 @@
 package com.starQeem.wohayp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
  * @author: Qeem
  */
 @Mapper
-public interface fileMapper extends BaseMapper<file> {
+public interface fileMapper extends BaseMapper<File> {
     /**
      * 获取用户已经使用的空间
      *

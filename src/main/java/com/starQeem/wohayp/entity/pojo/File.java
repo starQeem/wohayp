@@ -3,8 +3,6 @@ package com.starQeem.wohayp.entity.pojo;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -15,7 +13,7 @@ import java.util.Date;
  * @author: Qeem
  */
 @Data
-public class file {
+public class File {
     @TableId
     private Long fileId;  //文件id
     private Long userId;  //用户id

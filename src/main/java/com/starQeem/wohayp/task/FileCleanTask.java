@@ -8,7 +8,7 @@ package com.starQeem.wohayp.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.starQeem.wohayp.entity.enums.FileDelFlagEnums;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
 import com.starQeem.wohayp.service.fileService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class FileCleanTask {
         calendar.add(Calendar.DAY_OF_MONTH, - RECYCLE_TTL);
         Date tenDaysAgo = calendar.getTime();
 
-        QueryWrapper<file> deleteQueryWrapper = new QueryWrapper<>();
+        QueryWrapper<File> deleteQueryWrapper = new QueryWrapper<>();
         deleteQueryWrapper
                 .eq("del_flag", FileDelFlagEnums.RECYCLE.getFlag())
                 .lt("recovery_time", tenDaysAgo);

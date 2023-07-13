@@ -3,7 +3,7 @@ package com.starQeem.wohayp.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.entity.dto.UserSpaceDto;
-import com.starQeem.wohayp.entity.pojo.user;
+import com.starQeem.wohayp.entity.pojo.User;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import com.starQeem.wohayp.entity.vo.UserInfoVO;
 
@@ -13,7 +13,7 @@ import javax.mail.MessagingException;
  * @Date: 2023/5/25 19:16
  * @author: Qeem
  */
-public interface userService extends IService<user> {
+public interface userService extends IService<User> {
     /**
      * 生成验证码
      *
@@ -26,7 +26,7 @@ public interface userService extends IService<user> {
      *
      * @param user 用户
      */
-    void register(user user,String emailCode);
+    void register(User user, String emailCode);
 
     /**
      * 登录
@@ -51,7 +51,7 @@ public interface userService extends IService<user> {
      * @param userId 用户id
      * @return {@link UserDto}
      */
-    user getAvatar(Long userId);
+    User getAvatar(Long userId);
 
     /**
      * 修改用户密码
@@ -84,7 +84,7 @@ public interface userService extends IService<user> {
      * @param pageSize      一页的数据条数
      * @return {@link PaginationResultVO}<{@link UserInfoVO}>
      */
-    PaginationResultVO<user> getUserList(String nickNameFuzzy, String status, Integer pageNo, Integer pageSize);
+    PaginationResultVO<User> getUserList(String nickNameFuzzy, String status, Integer pageNo, Integer pageSize);
 
     /**
      * 修改用户状态

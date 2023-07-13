@@ -1,7 +1,7 @@
 package com.starQeem.wohayp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.starQeem.wohayp.entity.pojo.user;
+import com.starQeem.wohayp.entity.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Param;
  * @author: Qeem
  */
 @Mapper
-public interface userMapper extends BaseMapper<user> {
+public interface userMapper extends BaseMapper<User> {
     /**
      * 更新用户空间
      *

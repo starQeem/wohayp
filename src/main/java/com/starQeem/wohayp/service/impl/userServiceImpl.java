@@ -3,10 +3,12 @@ package com.starQeem.wohayp.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.starQeem.wohayp.entity.pojo.file;
+import com.starQeem.wohayp.entity.pojo.File;
+import com.starQeem.wohayp.entity.pojo.User;
 import com.starQeem.wohayp.entity.vo.PaginationResultVO;
 import com.starQeem.wohayp.entity.vo.UserInfoVO;
 import com.starQeem.wohayp.util.SnowflakeIdUtils;
@@ -16,7 +18,6 @@ import com.starQeem.wohayp.entity.dto.UserDto;
 import com.starQeem.wohayp.exception.BusinessException;
 import com.starQeem.wohayp.mapper.fileMapper;
 import com.starQeem.wohayp.mapper.userMapper;
-import com.starQeem.wohayp.entity.pojo.user;
 import com.starQeem.wohayp.service.userService;
 import com.starQeem.wohayp.util.MD5Utils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,7 +38,7 @@ import static com.starQeem.wohayp.util.Constants.*;
  * @author: Qeem
  */
 @Service
-public class userServiceImpl extends ServiceImpl<userMapper, user> implements userService {
+public class userServiceImpl extends ServiceImpl<userMapper, User> implements userService {
     @Resource
     private userService userService;
     @Resource
@@ -52,9 +53,9 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
     @Override
     public void code(String email,Integer type) throws MessagingException {
         if (type == ZERO){ //注册
-            QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-            queryWrapper.select("user_id","email").eq("email",email);
-            user user = userService.getBaseMapper().selectOne(queryWrapper);
+            User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery()
+                    .select(User::getUserId,User::getEmail)
+                    .eq(User::getEmail,email));
             if (user != null){
                 throw new BusinessException("发送失败!该邮箱已经注册过!");
             }else {
@@ -67,9 +68,9 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
         }
         if (type == ONE){
             //找回密码
-            QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-            queryWrapper.select("user_id","email").eq("email",email);
-            user user = userService.getBaseMapper().selectOne(queryWrapper);
+            User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery()
+                    .select(User::getUserId,User::getEmail)
+                    .eq(User::getEmail,email));
             if (user == null){
                 throw new BusinessException("邮箱不存在,请输入正确的邮箱!");
             }else {
@@ -88,11 +89,11 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      * @param user 用户
      */
     @Override
-    public void register(user user,String emailCode) {
+    public void register(User user, String emailCode) {
         //1.根据邮箱地址查询数据库
-        QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("user_id","email").eq("email",user.getEmail());
-        user getUser = userService.getBaseMapper().selectOne(queryWrapper);
+        User getUser = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery()
+                .select(User::getUserId,User::getEmail)
+                .eq(User::getEmail,user.getEmail()));
         //2.判断查询结果是否为空
         if (getUser != null){
             //不为空,邮箱已经被注册,抛出异常
@@ -131,9 +132,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
     @Override
     public UserDto login(String email, String password) {
         //1.根据邮箱地址查询数据库
-        QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("user_id","email","status","password","total_space").eq("email",email);
-        user user = userService.getBaseMapper().selectOne(queryWrapper);
+        User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery().eq(User::getEmail,email));
         //2.判断查询出来的是否为空
         if (user == null){//为空
             throw new BusinessException("用户名不存在,请先注册!");
@@ -145,7 +144,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
             throw new BusinessException("登录失败!账号已被禁用!");
         }
         //3.更新最后登录时间
-        user updateUser = new user();
+        User updateUser = new User();
         updateUser.setUserId(user.getUserId());
         updateUser.setLastLoginTime(new Date());
         userService.updateById(updateUser);
@@ -195,16 +194,14 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
             throw new BusinessException("验证码错误!");
         }
         //3.根据邮箱地址查询数据库
-        QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("user_id","email","password").eq("email",email);
-        user user = userService.getBaseMapper().selectOne(queryWrapper);
+        User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery().eq(User::getEmail,email));
         //4.判断新密码与旧密码是否相同
         if (user.getPassword().equalsIgnoreCase(MD5Utils.code(password))){
             //相同,抛出异常
             throw new BusinessException("修改失败,请勿输入与修改前相同的密码!");
         }
         //5.不相同,修改密码
-        user updateUser = new user();
+        User updateUser = new User();
         updateUser.setUserId(user.getUserId());
         updateUser.setEmail(email);
         updateUser.setPassword(MD5Utils.code(password));
@@ -218,10 +215,8 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      * @return {@link UserDto}
      */
     @Override
-    public user getAvatar(Long userId) {
-        QueryWrapper<user> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("user_id","avatar").eq("user_id",userId);
-        return userService.getBaseMapper().selectOne(queryWrapper);
+    public User getAvatar(Long userId) {
+        return userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery().eq(User::getUserId,userId));
     }
 
     /**
@@ -232,7 +227,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      */
     @Override
     public void updatePasswordByUserId(Long userId, String password) {
-        user user = new user();
+        User user = new User();
         user.setUserId(userId);
         user.setPassword(MD5Utils.code(password));
         userService.updateById(user);
@@ -245,7 +240,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      */
     @Override
     public void updateAvatar(Long userId) {
-        user user = new user();
+        User user = new User();
         user.setUserId(userId);
         user.setAvatar("");
         userService.updateById(user);
@@ -260,7 +255,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
     public UserSpaceDto getUserSpace(Long userId) {
         String userSpace = stringRedisTemplate.opsForValue().get(USER_SPACE + userId);
         UserSpaceDto userSpaceDto = JSONUtil.toBean(userSpace, UserSpaceDto.class);
-        user user = new user();
+        User user = new User();
         user.setUserId(userId);
         user.setUseSpace(userSpaceDto.getUseSpace());
         userService.updateById(user);
@@ -277,7 +272,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      * @return {@link PaginationResultVO}<{@link UserInfoVO}>
      */
     @Override
-    public PaginationResultVO<user> getUserList(String nickNameFuzzy, String status, Integer pageNo, Integer pageSize) {
+    public PaginationResultVO<User> getUserList(String nickNameFuzzy, String status, Integer pageNo, Integer pageSize) {
         if (pageNo == null){
             pageNo = ONE;
         }
@@ -289,13 +284,13 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
         }
         PageHelper.startPage(pageNo,pageSize);
         PageHelper.orderBy("last_login_time desc");
-        QueryWrapper<user> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (status != null){
             queryWrapper.eq("status",status);
         }
         queryWrapper.like("nick_name",nickNameFuzzy);
-        List<user> list = userService.getBaseMapper().selectList(queryWrapper);
-        PageInfo<user> pageInfo = new PageInfo<>(list);
+        List<User> list = userService.getBaseMapper().selectList(queryWrapper);
+        PageInfo<User> pageInfo = new PageInfo<>(list);
         return new PaginationResultVO<>(Math.toIntExact(pageInfo.getTotal()), pageInfo.getPageSize(), pageInfo.getPageNum(), pageInfo.getPages(), list);
     }
 
@@ -309,13 +304,11 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
     @Transactional(rollbackFor = Exception.class)
     public void updateUserStatus(Long userId, String status) {
         //修改用户状态
-        user user = new user();
+        User user = new User();
         user.setUserId(userId);
         user.setStatus(Integer.parseInt(status));
         if (status.equals(ZERO_STRING)){  //如果是禁用,则删除该用户的所有文件
-            QueryWrapper<file> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id",userId);
-            fileMapper.delete(queryWrapper);
+            fileMapper.delete(Wrappers.<File>lambdaQuery().eq(File::getUserId,userId));
             //把使用空间和总空间都设置为0
             user.setTotalSpace(STOP_TOTAL_SPACE);
             user.setUseSpace(USE_SPACE);
@@ -331,9 +324,7 @@ public class userServiceImpl extends ServiceImpl<userMapper, user> implements us
      */
     @Override
     public void updateUserSpace(Long userId, String changeSpace) {
-        QueryWrapper<user> selectQueryWrapper = new QueryWrapper<>();
-        selectQueryWrapper.select("user_id","use_space").eq("user_id",userId);
-        user user = userService.getBaseMapper().selectOne(selectQueryWrapper);
+        User user = userService.getBaseMapper().selectOne(Wrappers.<User>lambdaQuery().eq(User::getUserId,userId));
         if (user.getUseSpace() > Long.parseLong(changeSpace)){
             throw new BusinessException("修改的用户空间大小小于用户已经使用的空间大小,修改失败!");
         }

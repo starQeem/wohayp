@@ -13,7 +13,7 @@ import java.util.Date;
  * @author: Qeem
  */
 @Data
-public class share {
+public class Share {
     @TableId
     private Long shareId;  //分享id
     private Long fileId;  //文件id

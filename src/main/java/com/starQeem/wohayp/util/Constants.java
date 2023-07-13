@@ -20,7 +20,7 @@ public class Constants {
     public final static int USER_FILE_TIME_TTL = 60*60;//临时文件过期时间
     public final static int DOWN_LOAD_TTL = 60*10; //下载链接过期时间
     public final static String FILE = "d:/wohaypFile/"; //windows目录
-//    public final static String FILE = "/wohaypFile/"; //Linux目录
+    //    public final static String FILE = "/wohaypFile/"; //Linux目录
     public final static String FILE_FOLDER_FILE = "file/"; //分目录
     public final static String FILE_FOLDER_AVATAR_NAME = "avatar/"; //用户头像目录
     public final static String AVATAR_DEFAULT = "default_avatar"; //用户默认头像名
